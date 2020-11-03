@@ -18,10 +18,13 @@ from joblib import Parallel, delayed
 #%%
 from simpleRT import Model3D
 
-basename = './modele/korytarz'
+folder = 'modele'
+basename = 'korytarz'
 filename = basename + '.obj'
 model3D = Model3D()
+os.chdir(folder)
 model3D.loadOBJ(filename)
+os.chdir('..')
     
 #%%
 from simpleRT import Source3D, SimulationRT, Receiver3D
@@ -46,7 +49,7 @@ receiver.position = rpos
 rec_rad=0.3
 simulation.receiver.radius = rec_rad
 
-model3D = mat.load_previous_materials(model3D, basename+".mat")
+model3D = mat.load_previous_materials(model3D, os.path.join(folder,basename+".mat"))
 #mat.save_materials(model3D, basename+".mat")
 
 #%%
