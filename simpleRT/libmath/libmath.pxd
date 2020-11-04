@@ -11,8 +11,11 @@ cimport cython
 from cpython cimport bool
 
 from simpleRT.datatypes.MyVec3 cimport MyVec3
+from simpleRT.datatypes.MyArray3 cimport MyArray3
 
-cdef np.ndarray calculate_rotation_matrix(MyVec3 origin, MyVec3 target)
+cdef np.ndarray calculate_rotation_matrix_leg(MyVec3 origin, MyVec3 target)
+
+cdef MyArray3 calculate_rotation_matrix(MyVec3 origin, MyVec3 target)
 
 cdef float ray_triangle_intersection(MyVec3 rpos, MyVec3 rdir, MyVec3 v0, MyVec3 v1, MyVec3 v2)
 

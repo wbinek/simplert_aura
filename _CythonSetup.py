@@ -10,6 +10,7 @@ Options.buffer_max_dims = 3
 
 extensions=[
     Extension("simpleRT.datatypes.MyVec3", ["simpleRT/datatypes/MyVec3.pyx"]),
+    Extension("simpleRT.datatypes.MyArray3", ["simpleRT/datatypes/MyArray3.pyx"]),
     Extension("simpleRT.libmath.libmath", ["simpleRT/libmath/libmath.pyx"]),
     Extension("simpleRT.ray", ["simpleRT/ray.pyx"]),
     Extension("simpleRT.receiver3d", ["simpleRT/receiver3d.pyx"]),
@@ -22,8 +23,8 @@ setup(
     name = 'MyProject',
     ext_modules = cythonize(extensions, force=True,
     compiler_directives={'language_level': 3, 
-    'boundscheck':False, 
-    'cdivision':True,
+    'boundscheck':True, 
+    'cdivision':False,
     'profile':True}),
     include_dirs=[numpy.get_include()],
 )

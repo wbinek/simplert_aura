@@ -7,34 +7,57 @@ Created on Wed Oct 31 11:59:58 2018
 import random as rnd
 import numpy as np
 cimport numpy as np
-cimport cython
 
 cimport cython 
 from libc.math cimport sin, cos, abs, pi, sqrt, acos, pow
 from cpython cimport bool
 
 from simpleRT.datatypes.MyVec3 cimport MyVec3
+from simpleRT.datatypes.MyArray3 cimport MyArray3
 
-cdef np.ndarray calculate_rotation_matrix(MyVec3 origin, MyVec3 target):    
+cdef MyArray3 I
+global I
+I = MyArray3()
+I.eye()
+
+cdef np.ndarray calculate_rotation_matrix_leg(MyVec3 origin, MyVec3 target):    
     cdef np.ndarray I = np.eye(3)   
     cdef MyVec3 cross = origin.cross(target)
 
-    cdef np.ndarray v,o,t,c,rot_mat;
+    cdef np.ndarray v, rot_mat;
     
     if(cross.vectorLength()>0.0001):
         v = np.matrix([[0, -cross.z, cross.y],
                       [cross.z, 0, -cross.x],
                       [-cross.y, cross.x, 0]])
     
-        o = np.array(origin.asArray())
-        t = np.array(target.asArray())
-        c = np.array(cross.asArray())
-        rot_mat = I + v + v*v*(1/(1+np.dot(o,t)))
-        
+    
+        rot_mat = I + v + v*v*(1/(1+origin.dot(target)))
+       
     else:
         rot_mat = -I
 
     return rot_mat 
+
+cdef MyArray3 calculate_rotation_matrix(MyVec3 origin, MyVec3 target):
+    global I
+    cdef MyVec3 cross = origin.cross(target)
+
+    cdef MyArray3 v, vsq, vsqm ,vvsqm, rot_mat;
+    
+    if(cross.vectorLength()>0.0001):
+        v = MyArray3()
+        v.set_matrix(0, -cross.z, cross.y,
+                    cross.z, 0, -cross.x,
+                    -cross.y, cross.x, 0)
+      
+        # rot_mat = I + v + v*v*(1/(1+origin.dot(target)))
+        rot_mat = (I.add_array(v)).add_array((v.mul_array(v)).mul_float(1/(1+origin.dot(target))))
+     
+    else:
+        rot_mat = -I
+
+    return rot_mat
 
 cdef float ray_triangle_intersection(MyVec3 rpos, MyVec3 rdir, MyVec3 v0, MyVec3 v1, MyVec3 v2):
     cdef MyVec3 v1v0 = v1.sub_vec(v0)
@@ -54,7 +77,7 @@ cdef float ray_triangle_intersection(MyVec3 rpos, MyVec3 rdir, MyVec3 v0, MyVec3
     #t = min(u, min(v, min(1.0-u-v, t)));
     if u<0.0 or u>1.0 or v<0.0 or (u+v)>1.0:
         t = -1.0;
-
+        
     return t
 
 cdef inline MyVec3 move_ray(MyVec3 ray_position, MyVec3 ray_direction, float time):
@@ -110,12 +133,10 @@ cdef MyVec3 nexp_reflection(MyVec3 ray_direction, MyVec3 normal, int n):
     cdef MyVec3 base_norm = MyVec3()
     base_norm.x, base_norm.y, base_norm.z = 0., 0., 1.
     
-    rot_matrix = calculate_rotation_matrix(base_norm, specular)
+    cdef MyArray3 rot_matrix = calculate_rotation_matrix(base_norm, specular)
     cdef MyVec3 base_refl = base_nexp_reflection(n)
-    cdef MyVec3 ref = MyVec3()
 
-    cdef np.ndarray rotated = rot_matrix*np.array([base_refl.asArray()]).T
-    ref.x, ref.y, ref.z = rotated[0,0], rotated[1,0], rotated[2,0]
+    cdef MyVec3 ref = rot_matrix.mul_vec(base_refl)
     ref = ref.normalize()
     
     if ref.dot(normal)<=0:
