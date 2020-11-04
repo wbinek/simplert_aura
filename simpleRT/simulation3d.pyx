@@ -236,35 +236,36 @@ cdef class SimulationRT():
         elif self.rt_algorithm == RTAlgorithm.NextEventEstimation:
             self.run_ray_nee(ray)
      
-if __name__ == "__main__":  
-    ray = Ray()
-    rpos = MyVec3()
-    rpos.x, rpos.y, rpos.z = 0,0,0
-    ray.position=rpos
-    
-    rdir = MyVec3()
-    rdir.x, rdir.y, rdir.z = 1,0.1,0
-    ray.direction=rdir
-    
-    v0 = MyVec3()
-    v1 = MyVec3()
-    v2 = MyVec3()
-    v0.fromArray([1,0,0])
-    v1.fromArray([1,0,1])
-    v2.fromArray([1,1,1])
-    dist = libmath.ray_triangle_intersection(ray.position, ray.direction, v0, v1, v2)
-    print(dist)
-    
-    sphere = Receiver3D()
-    sphere.position.fromArray([1, 0, 0]) 
-    sphere.radius = 0.2
-    res = libmath.ray_sphere_intersection(ray.position, ray.direction, sphere.position, sphere.radius)
-    print(res)
-    
-    normal = MyVec3()
-    normal.fromArray([-1,0,0])
-    base = libmath.base_reflection(ray.direction, normal,0)
-    specular = libmath.specular_reflection(ray.direction, normal)
-    lambert = libmath.nexp_reflection(ray.direction, normal,5000)
-    print(specular.asArray())
-    print(lambert.asArray())
+    @staticmethod
+    def run_tests():  
+        ray = Ray()
+        rpos = MyVec3()
+        rpos.x, rpos.y, rpos.z = 0,0,0
+        ray.position=rpos
+        
+        rdir = MyVec3()
+        rdir.x, rdir.y, rdir.z = 1,-0.1,0
+        ray.direction=rdir
+        
+        v0 = MyVec3()
+        v1 = MyVec3()
+        v2 = MyVec3()
+        v0.fromArray([2,-5,-5])
+        v1.fromArray([2,5,-5])
+        v2.fromArray([2,-5,5])
+        dist = libmath.ray_triangle_intersection(ray.position, ray.direction, v0, v1, v2)
+        print(dist)
+        
+        sphere = Receiver3D()
+        sphere.position.fromArray([1, 0, 0]) 
+        sphere.radius = 0.2
+        res = libmath.ray_sphere_intersection(ray.position, ray.direction, sphere.position, sphere.radius)
+        print(res)
+        
+        normal = MyVec3()
+        normal.fromArray([-1,0,0])
+        base = libmath.base_reflection(ray.direction, normal,0)
+        specular = libmath.specular_reflection(ray.direction, normal)
+        lambert = libmath.nexp_reflection(ray.direction, normal,5000)
+        print(specular.asArray())
+        print(lambert.asArray())
