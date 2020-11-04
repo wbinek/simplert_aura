@@ -28,7 +28,7 @@ cdef class MyVec3:
     
     cdef MyVec3 normalize(self)
     
-    cdef list asArray(self)
+    cpdef list asArray(self)
     
-    cdef fromArray(self, list vec)
+    cpdef fromArray(self, list vec)
 	

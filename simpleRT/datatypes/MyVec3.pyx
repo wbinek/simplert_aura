@@ -1,14 +1,21 @@
 cimport cython
 cimport numpy as np
 
-from libc.math cimport sin, cos, abs, pi, sqrt, acos
-from cpython cimport bool
-
+from libc.math cimport sqrt
 
 ## Vector class
 @cython.final
-@cython.freelist(128)
+@cython.freelist(8)
 cdef class MyVec3:
+
+    def __str__(self):
+        l = self.asArray()
+        return str(l)
+
+    def __neg__(self):
+        cdef MyVec3 res = MyVec3()
+        res.x, res.y, res.z = -self.x, -self.y, -self.z
+        return res
             
     cdef  float dot(self, MyVec3 v2):
         return self.x*v2.x + self.y*v2.y + self.z*v2.z
@@ -20,7 +27,7 @@ cdef class MyVec3:
         cross.z = self.x*v2.y - self.y*v2.x      
         return cross
 
-    cdef float vectorLength(self):
+    cdef inline float vectorLength(self):
         return sqrt(self.x**2 + self.y**2 + self.z**2)
 
     cdef MyVec3 add_vec(self, MyVec3 v2):
@@ -77,8 +84,8 @@ cdef class MyVec3:
         cdef MyVec3 normalized = self.div(length)
         return normalized
     
-    cdef list asArray(self):
+    cpdef list asArray(self):
         return [self.x, self.y, self.z]
     
-    cdef fromArray(self, list vec):
+    cpdef fromArray(self, list vec):
         self.x, self.y, self.z = vec[0], vec[1], vec[2]
