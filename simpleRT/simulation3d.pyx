@@ -96,20 +96,11 @@ cdef class SimulationRT():
         
         if not brute_force:
             self.initialize_rtree()
-        
-    cpdef initialize_rtree(self):
-        p = index.Property()
-        p.dimension = 3
-        p.fill_factor=0.05
-        p.leaf_capacity = 50
-        
-        self.kdTree = None
-        
-        self.kdTree = index.Index(properties=p)
-        
+
+    cdef list rtree_generator(self):
         cdef int i
         cdef Face3D face
-
+        cdef list objects=[]
         for i,face in enumerate(self.model3d.faces):
             v0 = self.model3d.vertices[face.vertices[0]]
             v1 = self.model3d.vertices[face.vertices[1]]
@@ -122,12 +113,23 @@ cdef class SimulationRT():
             stack = np.vstack((v0,v1,v2))
             mintri = np.min(stack,axis=0)
             maxtri = np.max(stack,axis=0)
-            self.kdTree.insert(i, np.hstack((mintri,maxtri)))
+            objects.append((i, np.hstack((mintri,maxtri)),None))
+        return objects
+        
+    cdef initialize_rtree(self):
+        p = index.Property()
+        p.dimension = 3
+        p.fill_factor=0.05
+        p.leaf_capacity = 50
+        
+        self.kdTree = None
+        objects = self.rtree_generator()
+        self.kdTree = index.Index(objects,properties=p)
         
     cdef tuple brute_force_triangle_intersection(self, Ray ray, Face3D[:] faces, Face3D last_face, list indexes = None):
         cdef float tmin = np.Inf
-        cdef Face3D hit_face = None
         cdef float tp = -1
+        cdef Face3D hit_face = None
 
         if not indexes:
             indexes = list(range(len(faces)))
@@ -168,7 +170,7 @@ cdef class SimulationRT():
             maxpos = start.maxv(end)
         
             intersections = list(map(int,self.kdTree.intersection((minpos.x,minpos.y,minpos.z,maxpos.x,maxpos.y,maxpos.z))))
-        
+
             if intersections:
                 tmin, hit_face = self.brute_force_triangle_intersection(ray, self.model3d.faces, last_face, intersections)
 
@@ -242,7 +244,7 @@ cdef class SimulationRT():
     cdef run_ray_nee(self,ray):
         raise NotImplementedError
 
-    cpdef run_ray(self,ray, lock):
+    cpdef run_ray(self, ray):
         if self.rt_algorithm == RTAlgorithm.Basic:
             self.run_ray_basic(ray)
         elif self.rt_algorithm == RTAlgorithm.NextEventEstimation:
