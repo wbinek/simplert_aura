@@ -105,6 +105,9 @@ cdef class SimulationRT():
         
         self.kdTree = index.Index(properties=p)
         
+        cdef int i
+        cdef Face3D face
+
         for i,face in enumerate(self.model3d.faces):
             v0 = self.model3d.vertices[face.vertices[0]]
             v1 = self.model3d.vertices[face.vertices[1]]
@@ -127,7 +130,7 @@ cdef class SimulationRT():
         cdef int i
         cdef int lfaces = len(faces)
         for i in range(lfaces):
-            if face != last_face:            
+            if faces[i] != last_face:            
                 tp = libmath.ray_triangle_intersection(ray.position, ray.direction, 
                     self.model3d.vertices[faces[i].vertices[0]], 
                     self.model3d.vertices[faces[i].vertices[1]], 
@@ -161,7 +164,7 @@ cdef class SimulationRT():
             intersections = list(map(int,self.kdTree.intersection((minpos.x,minpos.y,minpos.z,maxpos.x,maxpos.y,maxpos.z))))
         
             if intersections:
-                tmin, hit_face = self.brute_force_triangle_intersection(ray, self.model3d.faces[intersections], last_face)
+                tmin, hit_face = self.brute_force_triangle_intersection(ray, self.model3d._faces[intersections], last_face)
 
             if hit_face is not None:
                 return tmin, hit_face
