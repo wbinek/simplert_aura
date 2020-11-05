@@ -83,6 +83,20 @@ cdef class MyVec3:
         cdef float length = self.vectorLength()
         cdef MyVec3 normalized = self.div(length)
         return normalized
+
+    cdef MyVec3 minv(self, MyVec3 v2):
+        cdef MyVec3 res = MyVec3()
+        res.x = min(self.x,v2.x)
+        res.y = min(self.y,v2.y)
+        res.z = min(self.z,v2.z)
+        return res
+
+    cdef MyVec3 maxv(self, MyVec3 v2):
+        cdef MyVec3 res = MyVec3()
+        res.x = max(self.x,v2.x)
+        res.y = max(self.y,v2.y)
+        res.z = max(self.z,v2.z)
+        return res
     
     cpdef list asArray(self):
         return [self.x, self.y, self.z]

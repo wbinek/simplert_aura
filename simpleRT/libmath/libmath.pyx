@@ -77,7 +77,7 @@ cdef float ray_triangle_intersection(MyVec3 rpos, MyVec3 rdir, MyVec3 v0, MyVec3
     #t = min(u, min(v, min(1.0-u-v, t)));
     if u<0.0 or u>1.0 or v<0.0 or (u+v)>1.0:
         t = -1.0;
-        
+
     return t
 
 cdef inline MyVec3 move_ray(MyVec3 ray_position, MyVec3 ray_direction, float time):
@@ -90,7 +90,7 @@ cdef list ray_sphere_intersection(MyVec3 ray_pos, MyVec3 ray_dir, MyVec3 sphere_
     cdef float h = b*b-c
     if h<=0:
         return []
-    return [-b-np.sqrt(h), -b+np.sqrt(h)]
+    return [-b-sqrt(h), -b+sqrt(h)]
 
 cdef MyVec3 random_direction_sphere():
     cdef float r1 = rnd.random()

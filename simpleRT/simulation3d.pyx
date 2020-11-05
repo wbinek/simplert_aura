@@ -6,8 +6,8 @@ Created on Fri Oct 26 14:05:10 2018
 """
 
 import cython
-cimport numpy as np
 import numpy as np
+cimport numpy as np
 from cpython cimport bool
 
 import copy
@@ -110,31 +110,32 @@ cdef class SimulationRT():
             v1 = self.model3d.vertices[face.vertices[1]]
             v2 = self.model3d.vertices[face.vertices[2]]
             
-            v0=np.array([v0.x, v0.y, v0.z])
-            v1=np.array([v1.x, v1.y, v1.z])
-            v2=np.array([v2.x, v2.y, v2.z])
+            v0=np.array(v0.asArray())
+            v1=np.array(v1.asArray())
+            v2=np.array(v2.asArray())
                         
             stack = np.vstack((v0,v1,v2))
             mintri = np.min(stack,axis=0)
             maxtri = np.max(stack,axis=0)
             self.kdTree.insert(i, np.hstack((mintri,maxtri)))
         
-    cdef tuple brute_force_triangle_intersection(self, Ray ray, np.ndarray faces, Face3D last_face):
-        
+    cdef tuple brute_force_triangle_intersection(self, Ray ray, Face3D[:] faces, Face3D last_face):
         cdef float tmin = np.Inf
         cdef Face3D hit_face = None
         cdef float tp = -1
 
-        for face in faces:
+        cdef int i
+        cdef int lfaces = len(faces)
+        for i in range(lfaces):
             if face != last_face:            
                 tp = libmath.ray_triangle_intersection(ray.position, ray.direction, 
-                    self.model3d.vertices[face.vertices[0]], 
-                    self.model3d.vertices[face.vertices[1]], 
-                    self.model3d.vertices[face.vertices[2]])
+                    self.model3d.vertices[faces[i].vertices[0]], 
+                    self.model3d.vertices[faces[i].vertices[1]], 
+                    self.model3d.vertices[faces[i].vertices[2]])
                            
                 if(tp>0 and tp<tmin):
                     tmin = tp
-                    hit_face = face
+                    hit_face = faces[i]
 
         return tmin, hit_face
     
@@ -143,19 +144,21 @@ cdef class SimulationRT():
         cdef float tmin = np.Inf
         cdef Face3D hit_face = None
         
-        cdef np.ndarray rpos = np.array([ray.position.x, ray.position.y, ray.position.z])
-        cdef np.ndarray rdir = np.array([ray.direction.x, ray.direction.y, ray.direction.z])
+        cdef MyVec3 rpos = ray.position
+        cdef MyVec3 rdir = ray.direction
 
         cdef int step=5
-        cdef np.ndarray stack, minpos, maxpos
+        cdef MyVec3 start, end, minpos, maxpos
         cdef list intersections
 
-        for i in range(20):           
-            stack = np.vstack((rpos+(rdir*i*step),rpos+(rdir*(i+1)*step)))
-            minpos = np.min(stack,axis=0)
-            maxpos = np.max(stack,axis=0)
+        cdef int i
+        for i in range(20):
+            start = rpos.add_vec(rdir.mul(i*step))
+            end = rpos.add_vec(rdir.mul((i+1)*step))          
+            minpos = start.minv(end)
+            maxpos = start.maxv(end)
         
-            intersections = list(map(int,self.kdTree.intersection(np.hstack((minpos,maxpos)))))
+            intersections = list(map(int,self.kdTree.intersection((minpos.x,minpos.y,minpos.z,maxpos.x,maxpos.y,maxpos.z))))
         
             if intersections:
                 tmin, hit_face = self.brute_force_triangle_intersection(ray, self.model3d.faces[intersections], last_face)

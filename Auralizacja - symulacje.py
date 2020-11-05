@@ -37,13 +37,15 @@ simulation.model3d = model3D
 source = Source3D()
 simulation.source = source          
 spos = MyVec3()
-spos.x, spos.y, spos.z = 2, 1.5, -5.3 #[x,z,-y]
+#spos.x, spos.y, spos.z = 2, 1.5, -5.3 #[x,z,-y]
+spos.fromArray([2, 1.5, -5.3])
 source.position = spos
 
 receiver = Receiver3D()
 simulation.receiver = receiver
 rpos = MyVec3()
-rpos.x, rpos.y, rpos.z = 2,1.2,-9
+#rpos.x, rpos.y, rpos.z = 2,1.2,-9
+rpos.fromArray([2,1.2,-9])
 receiver.position = rpos
 
 rec_rad=0.3
