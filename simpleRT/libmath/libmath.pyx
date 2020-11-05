@@ -43,7 +43,7 @@ cdef MyArray3 calculate_rotation_matrix(MyVec3 origin, MyVec3 target):
     global I
     cdef MyVec3 cross = origin.cross(target)
 
-    cdef MyArray3 v, vsq, vsqm ,vvsqm, rot_mat;
+    cdef MyArray3 v, rot_mat;
     
     if(cross.vectorLength()>0.0001):
         v = MyArray3()
@@ -68,7 +68,7 @@ cdef float ray_triangle_intersection(MyVec3 rpos, MyVec3 rdir, MyVec3 v0, MyVec3
     cdef MyVec3 q = rov0.cross(rdir)
     cdef float angle = rdir.dot(n)
     if abs(angle) < 0.000001:
-        return -1
+        return -1.
     cdef float d = 1./angle
     cdef float u = d*(q.neg()).dot(v2v0)
     cdef float v = d*q.dot(v1v0)
@@ -76,7 +76,7 @@ cdef float ray_triangle_intersection(MyVec3 rpos, MyVec3 rdir, MyVec3 v0, MyVec3
     
     #t = min(u, min(v, min(1.0-u-v, t)));
     if u<0.0 or u>1.0 or v<0.0 or (u+v)>1.0:
-        t = -1.0;
+        return -1.
 
     return t
 
