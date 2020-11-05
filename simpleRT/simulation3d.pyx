@@ -100,6 +100,8 @@ cdef class SimulationRT():
     cpdef initialize_rtree(self):
         p = index.Property()
         p.dimension = 3
+        p.fill_factor=0.05
+        p.leaf_capacity = 50
         
         self.kdTree = None
         
@@ -122,23 +124,27 @@ cdef class SimulationRT():
             maxtri = np.max(stack,axis=0)
             self.kdTree.insert(i, np.hstack((mintri,maxtri)))
         
-    cdef tuple brute_force_triangle_intersection(self, Ray ray, Face3D[:] faces, Face3D last_face):
+    cdef tuple brute_force_triangle_intersection(self, Ray ray, Face3D[:] faces, Face3D last_face, list indexes = None):
         cdef float tmin = np.Inf
         cdef Face3D hit_face = None
         cdef float tp = -1
 
-        cdef int i
-        cdef int lfaces = len(faces)
+        if not indexes:
+            indexes = list(range(len(faces)))
+
+        cdef int i, index
+        cdef int lfaces = len(indexes)
         for i in range(lfaces):
-            if faces[i] != last_face:            
+            index = indexes[i]
+            if faces[index] != last_face:            
                 tp = libmath.ray_triangle_intersection(ray.position, ray.direction, 
-                    self.model3d.vertices[faces[i].vertices[0]], 
-                    self.model3d.vertices[faces[i].vertices[1]], 
-                    self.model3d.vertices[faces[i].vertices[2]])
+                    self.model3d.vertices[faces[index].vertices[0]], 
+                    self.model3d.vertices[faces[index].vertices[1]], 
+                    self.model3d.vertices[faces[index].vertices[2]])
                            
                 if(tp>0 and tp<tmin):
                     tmin = tp
-                    hit_face = faces[i]
+                    hit_face = faces[index]
 
         return tmin, hit_face
     
@@ -150,12 +156,12 @@ cdef class SimulationRT():
         cdef MyVec3 rpos = ray.position
         cdef MyVec3 rdir = ray.direction
 
-        cdef int step=5
+        cdef int step=15
         cdef MyVec3 start, end, minpos, maxpos
         cdef list intersections
-
+        
         cdef int i
-        for i in range(20):
+        for i in range(10):
             start = rpos.add_vec(rdir.mul(i*step))
             end = rpos.add_vec(rdir.mul((i+1)*step))          
             minpos = start.minv(end)
@@ -164,7 +170,7 @@ cdef class SimulationRT():
             intersections = list(map(int,self.kdTree.intersection((minpos.x,minpos.y,minpos.z,maxpos.x,maxpos.y,maxpos.z))))
         
             if intersections:
-                tmin, hit_face = self.brute_force_triangle_intersection(ray, self.model3d._faces[intersections], last_face)
+                tmin, hit_face = self.brute_force_triangle_intersection(ray, self.model3d.faces, last_face, intersections)
 
             if hit_face is not None:
                 return tmin, hit_face
@@ -236,7 +242,7 @@ cdef class SimulationRT():
     cdef run_ray_nee(self,ray):
         raise NotImplementedError
 
-    cpdef run_ray(self,ray):
+    cpdef run_ray(self,ray, lock):
         if self.rt_algorithm == RTAlgorithm.Basic:
             self.run_ray_basic(ray)
         elif self.rt_algorithm == RTAlgorithm.NextEventEstimation:
