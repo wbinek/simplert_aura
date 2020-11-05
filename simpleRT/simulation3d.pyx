@@ -46,18 +46,19 @@ cdef class SimulationRT():
     cdef public RaySphereIntersection ray_sphere_int
     cdef public RTAlgorithm rt_algorithm
     cpdef public np.ndarray time, result
-    cdef public object kdTree
+    cdef object kdTree
 
-    def __init__(self):
-        self.model3d = None
-        self.source = None
-        self.receiver = None       
+    def __init__(self, source=None, receiver=None, result=None, time = None):
+        self.source = source
+        self.receiver = receiver
+        self.result = result
+        self.time = time
                  
         self.c = 343
-        self.ray_set=[]
-        self.no_lost = 0
-        self.no_rays = 0
-        
+
+    def __reduce__(self):
+        return self.__class__, (self.source, self.receiver, self.result, self.time)
+  
     cpdef initialize_rays(self):
         ray_energy = (4*np.pi)/self.no_rays
         ray_position = self.source.position
@@ -92,7 +93,6 @@ cdef class SimulationRT():
         
         self.dv = self.c/self.fs 
         self.time = np.arange(0,sim_len,1/fs)
-        self.result = np.zeros((6, len(self.time)))
         
         if not brute_force:
             self.initialize_rtree()
@@ -126,13 +126,10 @@ cdef class SimulationRT():
         objects = self.rtree_generator()
         self.kdTree = index.Index(objects,properties=p)
         
-    cdef tuple brute_force_triangle_intersection(self, Ray ray, Face3D[:] faces, Face3D last_face, list indexes = None):
+    cdef tuple brute_force_triangle_intersection(self, Ray ray, Face3D[:] faces, Face3D last_face, list indexes):
         cdef float tmin = np.Inf
         cdef float tp = -1
         cdef Face3D hit_face = None
-
-        if not indexes:
-            indexes = list(range(len(faces)))
 
         cdef int i, index
         cdef int lfaces = len(indexes)
@@ -151,14 +148,13 @@ cdef class SimulationRT():
         return tmin, hit_face
     
     cdef tuple kd_tree_triang_intersection(self, Ray ray, Face3D last_face):
-        
-        cdef float tmin = np.Inf
+        cdef float tmin
         cdef Face3D hit_face = None
         
         cdef MyVec3 rpos = ray.position
         cdef MyVec3 rdir = ray.direction
 
-        cdef int step=15
+        cdef int step=10
         cdef MyVec3 start, end, minpos, maxpos
         cdef list intersections
         
@@ -199,7 +195,7 @@ cdef class SimulationRT():
             
             #Find colision with model geometry
             if self.brute_force:
-                tmin, hit_face = self.brute_force_triangle_intersection(ray, self.model3d.faces, last_face)
+                tmin, hit_face = self.brute_force_triangle_intersection(ray, self.model3d.faces, last_face, list(range(len(self.model3d.faces))))
             else:         
                 tmin, hit_face = self.kd_tree_triang_intersection(ray, last_face)
             
@@ -244,11 +240,24 @@ cdef class SimulationRT():
     cdef run_ray_nee(self,ray):
         raise NotImplementedError
 
-    cpdef run_ray(self, ray):
+    cdef run_ray(self, ray):
         if self.rt_algorithm == RTAlgorithm.Basic:
             self.run_ray_basic(ray)
         elif self.rt_algorithm == RTAlgorithm.NextEventEstimation:
             self.run_ray_nee(ray)
+
+    cpdef run_simulation(self, callback = None, hold_result=False):
+        if not hold_result:
+            self.result = np.zeros((6, len(self.time)))
+
+        self.no_lost=0
+        cdef int i=0
+        for ray in self.ray_set:
+            self.run_ray(ray)
+            i=i+1
+            if callback:
+                callback(i)
+
      
     @staticmethod
     def run_tests():  

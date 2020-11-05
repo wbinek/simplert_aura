@@ -13,13 +13,11 @@ import os
 import time
 import cProfile
 
-from joblib import Parallel, delayed
-
 #%%
 from simpleRT import Model3D
 
 folder = 'modele'
-basename = 'korytarz'
+basename = 'Tarnow-Jaskolka'
 filename = basename + '.obj'
 model3D = Model3D()
 os.chdir(folder)
@@ -37,15 +35,13 @@ simulation.model3d = model3D
 source = Source3D()
 simulation.source = source          
 spos = MyVec3()
-#spos.x, spos.y, spos.z = 2, 1.5, -5.3 #[x,z,-y]
-spos.fromArray([2, 1.5, -5.3])
+spos.fromArray([10, 1.5, -15.3])
 source.position = spos
 
 receiver = Receiver3D()
 simulation.receiver = receiver
 rpos = MyVec3()
-#rpos.x, rpos.y, rpos.z = 2,1.2,-9
-rpos.fromArray([2,1.2,-9])
+rpos.fromArray([15,1.2,-19])
 receiver.position = rpos
 
 rec_rad=0.3
@@ -57,32 +53,31 @@ model3D = mat.load_previous_materials(model3D, os.path.join(folder,basename+".ma
 #%%
 from simpleRT import ReflectionModel, RaySphereIntersection
 
-no_rays = 1000
+no_rays = 2000
 fs = 44100
 sim_length = 2
 max_reflection_order = 30
 brute_force = False
+profile = False
 reflection_model = ReflectionModel.Phong
 intersection_model = RaySphereIntersection.Full
 
+def callback(no_ray):
+    if(no_ray % 100)==0:
+        print(no_ray)
 
 def run_simulations(sim):
     sim.initialize_simulation_parameters(no_rays, fs, sim_length, max_reflection_order, brute_force, reflection_model, intersection_model)
     sim.initialize_rays() #create array of rays, set ray energy and position in the source, generate random ray direction
-    
-    i=1
-    for ray in sim.ray_set:
-        if(i % 100)==0:
-            print(i)
-        sim.run_ray(ray)
-        i+=1
-    #Parallel(n_jobs=2, verbose=10, require='sharedmem')(delayed(sim.run_ray)(ray) for ray in sim.ray_set)
+    sim.run_simulation(callback)
 
 start = time.time()
-with cProfile.Profile() as pr:
+if profile:
+    with cProfile.Profile() as pr:
+        run_simulations(simulation)
+        pr.dump_stats('profile_stats.prof')
+else:
     run_simulations(simulation)
-
-pr.dump_stats('profile_stats.prof')
 
 end = time.time()
 print(simulation.no_lost)
@@ -99,12 +94,12 @@ plt.plot(simulation.time,Lp)
 
 plt.show()
 
-# #%%
-# pickle.dump( simulation, open( basename+".res", "wb" ) )
+#%%
+pickle.dump( simulation, open( os.path.join(folder,basename+str(no_rays)+".res"), "wb" ))
 
 # #%%
-# if simulation == None:
-#     simulation = pickle.load( open( basename+".res", "rb" ) )
+# if 'simulation' in locals():
+#     simulation = pickle.load( open( os.path.join(folder,basename+str(no_rays)+".res", "rb" )) )
 
 # #%%
 # from scipy.signal import find_peaks
@@ -162,4 +157,4 @@ plt.show()
 # convolved = 0.15*convolved/np.max(convolved)
 # sd.play(convolved, fs)
 
-# %%
+# # %%

@@ -6,10 +6,10 @@ camera = None
 
 def display_model(model_display_holder, model3D, simulation):
     #Translate room model to 3d compatible format
-    vertices = [[vert.x, vert.y, vert.z] for vert in model3D.vertices] 
-    normals = [[norm.x, norm.y, norm.z] for norm in model3D.normals]
+    vertices = [v.asArray() for v in model3D._vertices]
+    normals = [n.asArray() for n in model3D._normals]
     materials = model3D.materials
-    faces = [f.vertices + [normals[f.normal_idx], materials[f.mat_name]['kd_hex'], None] for f in model3D.faces]
+    faces = [f._vertices.tolist() + [normals[f.normal_idx], materials[f.mat_name]['kd_hex'], None] for f in model3D._faces]
     viewGeometry = pts.Geometry(vertices=vertices, faces=faces)
     meshModel = pts.Mesh(
         geometry=viewGeometry,
@@ -23,14 +23,14 @@ def display_model(model_display_holder, model3D, simulation):
     
     # Translate sources to red spheres
     if(simulation.source):
-        s_disp_pos = [simulation.source.position.x, simulation.source.position.y, simulation.source.position.z]
+        s_disp_pos = simulation.source.position.asArray()
         dsource = pts.Mesh(geometry=pts.SphereGeometry(),material=pts.MeshLambertMaterial(color='red'),position=s_disp_pos)
     else:
         dsource=None
         
     # Translate receivers to red spheres
     if(simulation.receiver):
-        r_disp_pos = [simulation.receiver.position.x, simulation.receiver.position.y, simulation.receiver.position.z]
+        r_disp_pos = simulation.receiver.position.asArray()
         dreceiver = pts.Mesh(geometry=pts.SphereGeometry(),material=pts.MeshLambertMaterial(color='green'),position=r_disp_pos)
     else:
         dreceiver=None

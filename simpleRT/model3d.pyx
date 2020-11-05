@@ -12,9 +12,10 @@ from cpython.array cimport array, clone
 from simpleRT.datatypes.MyVec3 cimport MyVec3
 from simpleRT.helpers.objloader import OBJ
 
-cdef class Face3D:
-    
-    def __init__(self, tuple objFace = None):   
+cdef class Face3D: 
+    def __init__(self, tuple objFace = None):
+        self._vertices = np.empty((3,),dtype='int')
+        self.vertices = self._vertices
         if objFace is None:
             self.normal_idx = -1
             self.mat_name = None

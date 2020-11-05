@@ -9,10 +9,11 @@ from simpleRT.datatypes.MyVec3 cimport MyVec3
 cimport numpy as np
 
 cdef class Face3D:
-    cdef int vertices[3]
-    cdef int normal_idx
-    cdef str mat_name
-    
+    cdef public np.ndarray _vertices
+    cdef public int normal_idx
+    cdef public str mat_name
+    cdef int[:] vertices
+
 cdef class Model3D:
     cpdef public np.ndarray _faces, _vertices, _normals
     cpdef public dict materials
