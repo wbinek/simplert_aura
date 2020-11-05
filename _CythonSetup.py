@@ -25,6 +25,6 @@ setup(
     compiler_directives={'language_level': 3, 
     'boundscheck':True, 
     'cdivision':False,
-    'profile':True}),
+    'profile':False}),
     include_dirs=[numpy.get_include()],
 )
