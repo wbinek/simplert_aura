@@ -23,8 +23,8 @@ setup(
     name = 'MyProject',
     ext_modules = cythonize(extensions, force=True,
     compiler_directives={'language_level': 3, 
-    'boundscheck':True, 
-    'cdivision':False,
+    'boundscheck':False, 
+    'cdivision':True,
     'profile':False}),
     include_dirs=[numpy.get_include()],
 )
