@@ -1,6 +1,9 @@
 import pythreejs as pts
 import numpy as np
 
+from simpleRT.helpers import matloader as mat
+from ipywidgets import interact, widgets
+
 global camera
 camera = None
 
@@ -57,3 +60,22 @@ def display_model(model_display_holder, model3D, simulation):
     model_display_holder.clear_output()
     with model_display_holder:
         display(renderer)
+
+
+def display_position_controls(simulation,model3D,model_display_holder):
+    print('Pozycja źródła dźwięku:')
+    @interact(x=(-50,50,0.01),y=(-50,50,0.01),z=(0,50,0.01))
+    def set_source_position(x,y,z=1.5):
+        simulation.source.position.fromArray([x,z,-y]) 
+        display_model(model_display_holder, model3D, simulation)
+
+    print('Pozycja odbiornika:')
+    @interact(x=(-50,50,0.01),y=(-50,50,0.01),z=(0,20,0.01))
+    def set_receiver_position(x,y,z=1.2):
+        simulation.receiver.position.fromArray([x,z,-y])
+        display_model(model_display_holder, model3D, simulation)
+
+    print('Promień odbiorników:')
+    @interact(radius=(0,1,0.01))
+    def set_receiver_rad(radius = simulation.receiver.radius):
+        simulation.receiver.radius = radius
