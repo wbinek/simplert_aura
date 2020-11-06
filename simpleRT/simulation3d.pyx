@@ -164,7 +164,7 @@ cdef class SimulationRT():
             end = rpos.add_vec(rdir.mul((i+1)*step))          
             minpos = start.minv(end)
             maxpos = start.maxv(end)
-        
+            
             intersections = list(map(int,self.kdTree.intersection((minpos.x,minpos.y,minpos.z,maxpos.x,maxpos.y,maxpos.z))))
 
             if intersections:
@@ -240,7 +240,7 @@ cdef class SimulationRT():
     cdef run_ray_nee(self,ray):
         raise NotImplementedError
 
-    cdef run_ray(self, ray):
+    cdef void run_ray(self, ray):
         if self.rt_algorithm == RTAlgorithm.Basic:
             self.run_ray_basic(ray)
         elif self.rt_algorithm == RTAlgorithm.NextEventEstimation:

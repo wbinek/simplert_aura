@@ -9,9 +9,9 @@ cdef class MyArray3():
     #cdef float[:] _mdata
     #cdef float[:,:] _data
 
-    cdef set_zeros(self)
+    cdef void set_zeros(self)
 
-    cdef set_matrix(self,float x11,float x12,float x13,float x21,float x22,float x23,float x31,float x32,float x33)
+    cdef void set_matrix(self,float x11,float x12,float x13,float x21,float x22,float x23,float x31,float x32,float x33)
 
     cdef list asList(self)
 
@@ -23,7 +23,7 @@ cdef class MyArray3():
 
     cdef MyArray3 mul_float(self, float v)
 
-    cdef MyVec3 mul_vec(self, MyVec3 v)
+    cdef MyVec3 mul_vec(self, MyVec3 v) 
 
     cdef MyArray3 mul_array(self, MyArray3 v)
 

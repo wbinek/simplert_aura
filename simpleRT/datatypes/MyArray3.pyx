@@ -37,12 +37,12 @@ cdef class MyArray3():
             res._cdata.data.as_floats[i] = -self._cdata.data.as_floats[i]
         return res
 
-    cdef set_zeros(self):
+    cdef void set_zeros(self):
         cdef int i
         for i in range(9):
                 self._cdata.data.as_floats[i]=0.
 
-    cdef set_matrix(self,float x11,float x12,float x13,float x21,float x22,float x23,float x31,float x32,float x33):
+    cdef void set_matrix(self,float x11,float x12,float x13,float x21,float x22,float x23,float x31,float x32,float x33):
         self._cdata.data.as_floats[0] = x11 
         self._cdata.data.as_floats[1] = x12
         self._cdata.data.as_floats[2] = x13
