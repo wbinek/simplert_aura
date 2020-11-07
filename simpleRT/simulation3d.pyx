@@ -45,19 +45,20 @@ cdef class SimulationRT():
     cdef public ReflectionModel reflection_model
     cdef public RaySphereIntersection ray_sphere_int
     cdef public RTAlgorithm rt_algorithm
-    cpdef public np.ndarray time, result
+    cpdef public np.ndarray time, result, result_spatial
     cdef object kdTree
 
-    def __init__(self, source=None, receiver=None, result=None, time = None):
+    def __init__(self, source=None, receiver=None, result=None, time = None, fs=44100):
         self.source = source
         self.receiver = receiver
         self.result = result
         self.time = time
+        self.fs = fs
                  
         self.c = 343
 
     def __reduce__(self):
-        return self.__class__, (self.source, self.receiver, self.result, self.time)
+        return self.__class__, (self.source, self.receiver, self.result, self.time, self.fs)
   
     cpdef initialize_rays(self):
         ray_energy = (4*np.pi)/self.no_rays
@@ -220,6 +221,8 @@ cdef class SimulationRT():
                 
                 # add energy to result
                 self.result[:,entry_sample:exit_sample] += np.transpose(np.tile(ray.energy,(ds,1)))
+                #print((np.tile(ray.direction.asArray(),(6,1)).T * ray.energy).T)
+                self.result_spatial[:,:,entry_sample:exit_sample] += np.tile(((np.tile(ray.direction.asArray(),(6,1)).T * ray.energy).T)[:,:,None],(1,1,ds))
                 ray.receiver_hit = True
                 
             # Move ray to face hit position, update energy
@@ -249,6 +252,7 @@ cdef class SimulationRT():
     cpdef run_simulation(self, callback = None, hold_result=False):
         if not hold_result:
             self.result = np.zeros((6, len(self.time)))
+            self.result_spatial = np.zeros((6, 3, len(self.time)))
 
         self.no_lost=0
         cdef int i=0
