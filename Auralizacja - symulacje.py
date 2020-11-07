@@ -95,7 +95,7 @@ plt.plot(simulation.time,Lp)
 plt.show()
 
 #%%
-pickle.dump( simulation, open( os.path.join(folder,basename+str(no_rays)+".res"), "wb" ))
+#pickle.dump( simulation, open( os.path.join(folder,basename+str(no_rays)+".res"), "wb" ))
 
 # #%%
 # if 'simulation' in locals():
