@@ -48,17 +48,18 @@ cdef class SimulationRT():
     cpdef public np.ndarray time, result, result_spatial
     cdef object kdTree
 
-    def __init__(self, source=None, receiver=None, result=None, time = None, fs=44100):
+    def __init__(self, source=None, receiver=None, result=None, time = None, fs=44100, result_spatial = None):
         self.source = source
         self.receiver = receiver
         self.result = result
         self.time = time
         self.fs = fs
+        self.result_spatial = result_spatial
                  
         self.c = 343
 
     def __reduce__(self):
-        return self.__class__, (self.source, self.receiver, self.result, self.time, self.fs)
+        return self.__class__, (self.source, self.receiver, self.result, self.time, self.fs, self.result_spatial)
   
     cpdef initialize_rays(self):
         ray_energy = (4*np.pi)/self.no_rays
