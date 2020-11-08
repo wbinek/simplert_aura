@@ -1,7 +1,7 @@
 # Instrukcja ucuchomienia
 
 1. Zainstaluj u skonfiguruj docker
-2. Pobierz repozytorium jako plik .zip
+2. Pobierz repozytorium jako plik .zip i je wypakuj.
 2. W folderze z repozytorium zbuduj obraz docker (wpisz w linii komend)
     `docker build . --tag simpleaura:0.1`
 3. Uruchom jupyterlab (wpisz w linii komend)
