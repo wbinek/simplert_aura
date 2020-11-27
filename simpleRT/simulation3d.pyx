@@ -263,6 +263,67 @@ cdef class SimulationRT():
             if callback:
                 callback(i)
 
+    def import_ISIMPA_results(self,spl_file,intensity_file,spos,rpos,target_fs=44100):
+            import pandas as pd
+            from scipy import interpolate
+
+            frequencies = ['125','250','500','1000','2000','4000']
+
+            sposv=MyVec3()
+            rposv=MyVec3()
+            sposv.fromArray([spos[0], spos[2], -spos[1]])
+            rposv.fromArray([rpos[0], rpos[2], -rpos[1]])
+            self.source = Source3D()
+            self.receiver = Receiver3D()
+            self.source.position = sposv
+            self.receiver.position = rposv
+
+            # Load SPL
+            spl_table = pd.read_csv (spl_file)   #read from .csv 
+            spl = np.array([spl_table['125 Hz'], spl_table['250 Hz'], spl_table['500 Hz'], spl_table['1000 Hz'], spl_table['2000 Hz'], spl_table['4000 Hz']])  #take only columns with frequencies
+
+            # Extract time and calculate targe values
+            time = [(float(x.split(' ')[0]))/1000 for x in spl_table.SPL]           #separate time from unit 'ms'
+            fs = 1/(time[1]-time[0])
+            target_time = np.arange(time[0],time[-1],1/target_fs)
+
+            if(fs>target_fs):
+                raise Exception("I-SIMPA sampling > than target fs. Downsampling not implemented")
+
+            # Resample if needed
+            spl_res=[]
+            for spl_freq in spl:
+                spl_interp = interpolate.interp1d(time,spl_freq)
+                spl_res.append(spl_interp(target_time))
+
+            # Load intensity
+            data = pd.read_csv (r'ISimpa/Punctual receiver intensity.csv') #read from .csv
+            intensity = []
+            for freq in frequencies:
+                int_x = np.array(data[freq+' Hz_x'])
+                int_y = np.array(data[freq+' Hz_y'])
+                int_z = np.array(data[freq+' Hz_z'])
+                
+                int_x_interp = interpolate.interp1d(time,int_x[:-1])
+                int_x_res = int_x_interp(target_time)
+                int_y_interp = interpolate.interp1d(time,int_y[:-1])
+                int_y_res = int_y_interp(target_time)
+                int_z_interp = interpolate.interp1d(time,int_z[:-1])
+                int_z_res = int_z_interp(target_time)
+                
+                
+                int_f = np.vstack((int_x_res, int_z_res, -int_y_res))
+                intensity.append(int_f)
+
+            spl_res = np.array(spl_res)
+            intensity = np.array(intensity)
+
+            self.result = spl_res
+            self.result_spatial = intensity
+            self.fs = target_fs
+            self.time = target_time
+
+
      
     @staticmethod
     def run_tests():  
