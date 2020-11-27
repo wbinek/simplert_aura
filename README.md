@@ -1,4 +1,4 @@
-# Instrukcja ucuchomienia
+# Instrukcja uruchomienia
 
 1. Zainstaluj u skonfiguruj docker
 2. Pobierz repozytorium jako plik .zip i je wypakuj.
