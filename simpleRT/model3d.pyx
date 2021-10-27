@@ -5,6 +5,7 @@ Created on Fri Oct 26 11:10:34 2018
 @author: wojci
 """
 import cython
+import pandas as pd
 cimport numpy as np
 import numpy as np
 from cpython.array cimport array, clone
@@ -66,6 +67,15 @@ cdef class Model3D:
             mat['diffusion_coeff'] = 0.1
             col = (np.array(mat['Kd'])*255).astype(int)
             mat['kd_hex'] =  '#%02x%02x%02x' % (col[0], col[1], col[2])
+            
+    def export_materials_as_dict(self):
+        df = pd.DataFrame([np.append(mat['absorption_coeff'],mat['diffusion_coeff']) for name, mat in self.materials.items()], columns =['125Hz', '250Hz', '500Hz', '1000Hz', '2000Hz', '4000Hz', 'Diffusion'], index = self.materials.keys())
+        return df
+        
+    def import_materials_from_dict(self,df):
+        for index, row in df.iterrows():
+            self.materials[index]['absorption_coeff'] = np.array([row['125Hz'], row['250Hz'], row['500Hz'], row['1000Hz'], row['2000Hz'], row['4000Hz']])
+            self.materials[index]['diffusion_coeff'] = row['Diffusion']
       
         
         

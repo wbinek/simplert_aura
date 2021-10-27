@@ -8,5 +8,5 @@ cimport cython
 from simpleRT.datatypes.MyVec3 cimport MyVec3
 
 cdef class Receiver3D():
-    cpdef public MyVec3 position
-    cpdef public float radius
+    cdef public MyVec3 position
+    cdef public float radius

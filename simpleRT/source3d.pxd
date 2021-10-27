@@ -9,4 +9,4 @@ import cython
 from simpleRT.datatypes.MyVec3 cimport MyVec3
 
 cdef class Source3D():
-    cpdef public MyVec3 position
+    cdef public MyVec3 position

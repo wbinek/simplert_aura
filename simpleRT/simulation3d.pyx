@@ -9,6 +9,7 @@ import cython
 import numpy as np
 cimport numpy as np
 from cpython cimport bool
+from cython.parallel import prange
 
 import copy
 import random as rnd
@@ -45,7 +46,7 @@ cdef class SimulationRT():
     cdef public ReflectionModel reflection_model
     cdef public RaySphereIntersection ray_sphere_int
     cdef public RTAlgorithm rt_algorithm
-    cpdef public np.ndarray time, result, result_spatial
+    cdef public np.ndarray time, result, result_spatial
     cdef object kdTree
 
     def __init__(self, source=None, receiver=None, result=None, time = None, fs=44100, result_spatial = None):
@@ -262,6 +263,7 @@ cdef class SimulationRT():
             i=i+1
             if callback:
                 callback(i)
+        
 
     def import_ISIMPA_results(self,spl_file,intensity_file,spos,rpos,target_fs=44100):
             import pandas as pd

@@ -15,8 +15,8 @@ cdef class Face3D:
     cdef int[:] vertices
 
 cdef class Model3D:
-    cpdef public np.ndarray _faces, _vertices, _normals
-    cpdef public dict materials
+    cdef public np.ndarray _faces, _vertices, _normals
+    cdef public dict materials
     cdef MyVec3[:] vertices
     cdef MyVec3[:] normals
     cdef Face3D[:] faces
