@@ -3,6 +3,5 @@ build*
 .ipynb_checkpoints*
 __pycache__*
 *.c 
-*.pyd
 *.prof
 *.res
